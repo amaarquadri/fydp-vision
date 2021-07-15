@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from time import time
 import numpy as np
 import cv2
