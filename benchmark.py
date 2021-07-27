@@ -15,6 +15,7 @@ def test(filename='rail.png'):
         # print('Usage: hough_lines.py [image_name -- default ' + default_file + '] \n')
         return -1
 
+
     dst = cv2.Canny(src, 50, 200, None, 3)
 
     # Copy edges to the images that will display the results in BGR)
