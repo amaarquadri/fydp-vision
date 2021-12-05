@@ -37,7 +37,7 @@ while True:
     img=cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
     imgHSV = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     h_min = 0
-    h_max = 200
+    h_max = 100
     s_min = 0
     s_max = 255
     v_min = 20
