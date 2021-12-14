@@ -4,7 +4,7 @@ import numpy as np
 def empty(a):
     pass
 
-path = 'C:\\Users\\fahmi\\Desktop\\FYDP Photos\\DJI_0011.jpg'
+path = 'data/OneDrive_2021-10-06/All Photos/DJI_0047.JPG'
 
 def checklinesdetected(lines):
     if len(lines)==0:
@@ -27,14 +27,24 @@ def gauge_measurement(m1,b1,m2,b2):
     meangauge=abs(gauge/100)
     print(f'Gauge:{meangauge}')
 
+def anglecalc(x1,x2,y1,y2):
+    return np.arctan((y2-y1)/(x2-x1))
+
+def parallelchecker(angle1,angle2):
+    if abs(angle1-angle2)<5:
+        return 1
+    else:
+        return 0
 while True:
     img = cv2.imread(path)
     scale_percent = 20  # percent of original size
     width = int(img.shape[1] * scale_percent / 100)
     height = int(img.shape[0] * scale_percent / 100)
     dim = (width, height)
-    print(dim)
     img=cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+    #img=cv2.resize(img,(1280,720))
+    dimensions = img.shape
+    print(dimensions)
     imgHSV = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
     h_min = 0
     h_max = 100
@@ -63,6 +73,8 @@ while True:
     maxLineGap = 10
 
     n2 = 0
+    if len(lines)==0:
+        cv2.putText(mask,"No lines detected",(0,0),FONT_HERS,1,(0,0,255))
     for n1 in range(0, len(lines)):
         for rho, theta in lines[n1]:
             a = np.cos(theta)
@@ -88,7 +100,7 @@ while True:
                 closeness_rho = np.isclose(rho, strong_lines[0:n2, 0, 0], atol=10)
                 #closeness_theta = np.isclose(theta, strong_lines[0:n2, 0, 1], atol=np.pi / 10)
                 closeness = np.all([closeness_rho], axis=0)
-                if not any(closeness) and n2 < 3:
+                if not any(closeness) and n2 < 2:
                     strong_lines[n2] = lines[n1]
                     cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                     m2, b2 = equationofline(x1, y1, x2, y2)
