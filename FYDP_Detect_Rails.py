@@ -6,10 +6,6 @@ def empty(a):
 
 path = 'data/OneDrive_2021-10-06/All Photos/DJI_0042.JPG'
 
-def checklinesdetected(lines):
-    if len(lines)==0:
-        return 0
-
 def equationofline(x1,y1,x2,y2):
     m=(y2-y1)/(x2-x1)
     b=x2-y2/m
@@ -27,14 +23,6 @@ def gauge_measurement(m1,b1,m2,b2):
     meangauge=abs(gauge/100)
     print(f'Gauge:{meangauge}')
 
-def anglecalc(x1,x2,y1,y2):
-    return np.arctan((y2-y1)/(x2-x1))
-
-def parallelchecker(angle1,angle2):
-    if abs(angle1-angle2)<5:
-        return 1
-    else:
-        return 0
 def linedetection(lines,cdst):
     n2 = 0
     for n1 in range(0, len(lines)):
@@ -52,6 +40,7 @@ def linedetection(lines,cdst):
             if n1 == 0:
                 strong_lines[n2] = lines[n1]
                 cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+                cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                 print(f'line 1: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
                 m1, b1 = equationofline(x1, y1, x2, y2)
                 n2 = n2 + 1
@@ -61,9 +50,10 @@ def linedetection(lines,cdst):
                     theta -= np.pi
                 closeness_rho = np.isclose(rho, strong_lines[0:n2, 0, 0], atol=10)
                 closeness = np.all([closeness_rho], axis=0)
-                if not any(closeness) and n2 < 2:
+                if not any(closeness):
                     strong_lines[n2] = lines[n1]
                     cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+                    cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                     m2, b2 = equationofline(x1, y1, x2, y2)
                     print(f'line 2: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
                     n2 = n2 + 1
@@ -92,8 +82,7 @@ while True:
     imgResult = cv2.bitwise_and(img,img,mask=mask)
 
     mask = 255 - cv2.medianBlur(mask, 3)
-    cv2.imshow("Mask Images", mask)
-    cv2.imshow("Original Images", img)
+
 
     dst = cv2.Canny(mask, 300, 100, None, 3)
     cdst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
@@ -103,15 +92,13 @@ while True:
 
     strong_lines = np.zeros([4, 1, 2])
 
-    minLineLength = 2
-    maxLineGap = 10
-
-    if not lines.any():
-        cv2.putText(cdst,"No lines detected",(50,50),0,1,(0,0,255),1,2)
+    if int(0 if lines is None else 1) == 0:
+        cv2.putText(cdst, "No lines detected", (50, 50), 0, 1, (0, 0, 255), 1, 2)
 
     else:
         linedetection(lines,cdst)
-
+    cv2.imshow("Mask Images", mask)
+    cv2.imshow("Original Images", img)
     cv2.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
 
     cv2.waitKey()
