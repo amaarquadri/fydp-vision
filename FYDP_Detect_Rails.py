@@ -70,7 +70,7 @@ def linedetection(lines,cdst):
                     theta -= np.pi
                 closeness_rho = np.isclose(rho, strong_lines[0:n2, 0, 0], atol=50)
                 closeness = np.all([closeness_rho], axis=0)
-                if not any(closeness) and np.allclose(theta,strong_lines[0:n2,0,0],atol=510)==True:
+                if not any(closeness) and np.allclose(theta,strong_lines[0:n2,0,0],atol=510)==True: #takes away all lines that are in proximity and only keeps other lines with similar theta
                     strong_lines[n2] = lines[n1]
                     cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                     cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
