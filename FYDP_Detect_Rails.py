@@ -4,13 +4,15 @@ import numpy as np
 def empty(a):
     pass
 
-path = 'data/OneDrive_2021-10-06/All Photos/DJI_0042.JPG'
+path = 'data/OneDrive_2021-10-06/All Photos/DJI_0046.JPG'
 
-def equationofline(x1,y1,x2,y2):
+def equationoflineVector(x1,y1,x2,y2):
     m=(y2-y1)/(x2-x1)
     b=x2-y2/m
     return m,b
-    #y=(m(x-b))
+    #x=t
+    #y=(m(t-b))
+
 
 def gauge_measurement(m1,b1,m2,b2):
     y=0
@@ -22,6 +24,24 @@ def gauge_measurement(m1,b1,m2,b2):
         y+=1
     meangauge=abs(gauge/100)
     print(f'Gauge:{meangauge}')
+
+def showline(line, number):
+    for rho, theta in line:
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        pt1 = (int(x0 + 1000 * (-b)), int(y0 + 1000 * (a)))
+        pt2 = (int(x0 - 1000 * (-b)), int(y0 - 1000 * (a)))
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
+        cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+        cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
+        print(f'line {number}: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
+        m1, b1 = equationofline(x1, y1, x2, y2)
+        return m1,b1
 
 def linedetection(lines,cdst):
     n2 = 0
@@ -41,23 +61,24 @@ def linedetection(lines,cdst):
                 strong_lines[n2] = lines[n1]
                 cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                 cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
-                print(f'line 1: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
-                m1, b1 = equationofline(x1, y1, x2, y2)
+                print(f'line {n2+1}: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
+                #m1, b1 = equationofline(x1, y1, x2, y2)
                 n2 = n2 + 1
             else:
                 if rho < 0:
                     rho *= 1
                     theta -= np.pi
-                closeness_rho = np.isclose(rho, strong_lines[0:n2, 0, 0], atol=10)
+                closeness_rho = np.isclose(rho, strong_lines[0:n2, 0, 0], atol=50)
                 closeness = np.all([closeness_rho], axis=0)
-                if not any(closeness):
+                if not any(closeness) and np.allclose(theta,strong_lines[0:n2,0,0],atol=510)==True:
                     strong_lines[n2] = lines[n1]
                     cv2.line(cdst, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
                     cv2.line(img, pt1, pt2, (0, 0, 255), 3, cv2.LINE_AA)
-                    m2, b2 = equationofline(x1, y1, x2, y2)
-                    print(f'line 2: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
+                    #m2, b2 = equationofline(x1, y1, x2, y2)
+                    print(f'line {n2+1}: x1:{x1}, y1:{y1}, x2:{x2}, y2:{y2}')
                     n2 = n2 + 1
-    gauge_measurement(m1,b1,m2,b2)
+
+    #gauge_measurement(m1,b1,m2,b2)
 
 while True:
     img = cv2.imread(path)
@@ -83,20 +104,20 @@ while True:
 
     mask = 255 - cv2.medianBlur(mask, 3)
 
-
     dst = cv2.Canny(mask, 300, 100, None, 3)
     cdst = cv2.cvtColor(dst, cv2.COLOR_GRAY2BGR)
     cdstP = np.copy(cdst)
 
     lines = cv2.HoughLines(dst, 1, np.pi / 180, 120, None, 500, 0)
 
-    strong_lines = np.zeros([4, 1, 2])
+    strong_lines = np.zeros([50, 1, 2])
 
     if int(0 if lines is None else 1) == 0:
         cv2.putText(cdst, "No lines detected", (50, 50), 0, 1, (0, 0, 255), 1, 2)
 
     else:
         linedetection(lines,cdst)
+
     cv2.imshow("Mask Images", mask)
     cv2.imshow("Original Images", img)
     cv2.imshow("Detected Lines (in red) - Standard Hough Line Transform", cdst)
